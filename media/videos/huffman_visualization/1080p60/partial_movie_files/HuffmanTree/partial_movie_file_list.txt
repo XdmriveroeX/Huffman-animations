@@ -1,0 +1,9 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/2533009817_3153426344_223132457.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_1165985053_1637531888.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_2056114485_2118276392.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_3000880136_2118276392.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_3865814932_2118276392.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_1165985053_1987363542.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_308083286_54954599.mp4'
+file 'file:/home/carlos_rios/Uni/codigos/Huffman-animations/media/videos/huffman_visualization/1080p60/partial_movie_files/HuffmanTree/3629110584_1165985053_719805355.mp4'
