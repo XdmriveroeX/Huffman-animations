@@ -1,4 +1,4 @@
-#from manim import *
+from manim import *
 import numpy as np
 
 class SubTree():
@@ -33,6 +33,8 @@ class HuffTree():
     def __init__(self, inputSymbols, outputSymbols, probabilities):
         self.codification = {}
         self.tree = {}
+
+        # Sort the nodes
         nodes = {}
         for i in range(0, len(inputSymbols)):
             symbol = inputSymbols[i]
@@ -52,54 +54,47 @@ class HuffTree():
             self.tree[symbol] = SubTree(symbol, [pos, -5, 0], prob)
             pos += 2
 
-        # Sort the nodes
         print(self.tree)
 
+    #def codificate(self):
+        
 
+        
     def sortTree(self):
         self.tree = dict(sorted(self.tree.items(), key=lambda item : item[1].probability))
         print(self.tree)
 
-"""
+
+inputSymbols = []
+outputSymbols = []
+probabilities = []
+
 class HuffmanTree(MovingCameraScene):
-    def construct(self, inputSymbols, outputSymbols, probabilities):
-        # Define tree nodes
-        nodes = inputSymbols
-        
-        #Create subtrees
-        subtreeList = [SubTree()]
-        # Definir aristas (conexiones padre-hijo)
-        aristas = [
-            ("C", "F"), ("C", "G")   # C tiene hijos F y G
-        ]
+    def construct(self):
+        # Create HuffTree
+        global inputSymbols, outputSymbols, probabilities
+        huffTree = HuffTree(inputSymbols, outputSymbols, probabilities)
+        tree = huffTree.tree
+        print(tree)
+        # Create animation tree
+        nodes = [sub for sub in tree]
+        layout = {sub : tree[sub].leftMostPosition for sub in tree}
+        edges = []       
 
-        # Definir el layout de árbol (posiciones manuales)
-        layout = {
-                "A":[-5, 0, 0],
-            "C": [2, 1, 0],
-            "D": [-3, 0, 0],  # Segundo nivel
-            "E": [-1, 0, 0],
-            "F": [1, 0, 0],
-            "G": [3, 0, 0]
-        }
-
-        # Crear el grafo con layout personalizado
-        arbol = Graph(
-            vertices=nodos,  # Nodos
-            edges=aristas,   # Aristas
+        animationTree = Graph(
+            vertices=nodes,  # Nodos
+            edges=edges,   # Aristas
             layout=layout,
             labels=True      # Mostrar etiquetas en los nodos
         )
-
-        
+        print(nodes)
         self.camera.frame.scale(1.5),
 
         # Mostrar el árbol
-        self.play(Create(arbol))
-        
+        self.play(Create(animationTree))
         self.wait(2)
 
-# --------------- Agregar un nuevo nodo H -------------------
+"""# --------------- Agregar un nuevo nodo H -------------------
         # Definir el nuevo nodo y arista
         nuevo_nodo = "H"
         nueva_arista = ("N", "A")  # Nodo H conectado a E
@@ -126,8 +121,12 @@ class HuffmanTree(MovingCameraScene):
                 )
 
         
-        self.wait(2)
-"""
-symbols = ['A', 'B', 'C', 'D', 'E']
+        self.wait(2)"""
+
+
+inputSymbols = ['A', 'B', 'C', 'D', 'E']
+outputSymbols = ['0', '1']
 probabilities = [0.4, 0.2, 0.2, 0.1, 0.1]
-tree = HuffTree(symbols, ['0', '1'], probabilities)
+
+scene = HuffmanTree()
+scene.construct()
