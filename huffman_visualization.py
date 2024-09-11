@@ -131,7 +131,7 @@ class HuffTree():
         print(newEdges)
         print(self.codification)
 
-        return newEdges
+        return newEdges, newSubTree.leader
 
         
     def sortTree(self):
@@ -165,11 +165,20 @@ class HuffmanTree(MovingCameraScene):
         self.camera.frame.scale(1.5)
         self.camera.frame.move_to(ORIGIN)
 
-        # Mostrar el árbol
         self.play(Create(animationTree))
         self.wait(2)
 
-        huffTree.codificateStep()
+        # Codificate and update tree
+        newEdges, newNode = huffTree.codificateStep()
+        tree = huffTree.tree
+        newPos = {newNode: tree[newNode].positions[newNode]}
+
+        # Animate new node
+        self.play(animationTree.animate.add_vertices(newNode, positions=newPos, labels=True))
+        for edge in newEdges:
+            self.play(animationTree.animate.add_edges(edge))
+
+        self.wait(2)
 
 """# --------------- Agregar un nuevo nodo H -------------------
         # Definir el nuevo nodo y arista
