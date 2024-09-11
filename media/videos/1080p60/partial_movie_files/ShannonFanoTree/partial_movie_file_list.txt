@@ -1,0 +1,10 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/3977891868_437525757_223132457.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_2245118184_3395231886.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_4175385096_275573679.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_2710472360_593692436.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_2548846035_127791546.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_2903108653_961359092.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_579152522_1903851736.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_2362973477_3421790964.mp4'
+file 'file:C:/Users/dmriv/Documents/GitHub/Quickfins/Huffman-animations/media/videos/1080p60/partial_movie_files/ShannonFanoTree/2852726489_3292587564_2346344432.mp4'
