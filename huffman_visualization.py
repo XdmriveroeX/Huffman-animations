@@ -105,7 +105,7 @@ class HuffTree():
         firstPosX = first.positions[first.leader][0]
         lastPosX = last.positions[last.leader][0]
 
-        newNodePos = [(firstPosX+lastPosX)//2, level+1, 0]
+        newNodePos = [(firstPosX+lastPosX)//2, level+2, 0]
 
         newSubTree = SubTree(str(self.nodeCount), newNodePos, 0)
         
@@ -191,7 +191,7 @@ class HuffmanTree(MovingCameraScene):
         print(tree)
         # Create animation tree
         nodes = [sub for sub in tree]
-        layout = {sub : tree[sub].leftMostPosition for sub in tree}
+        layout = {sub : tree[sub].positions[sub] for sub in tree}
         edges = []       
 
         animationTree = Graph(
@@ -207,7 +207,7 @@ class HuffmanTree(MovingCameraScene):
         self.play(Create(animationTree))
         self.wait(2)
 
-        # Loops until done
+       # Loops until done
 
         # Codificate and update tree
         newEdges, newNode = huffTree.codificateStep()
@@ -220,38 +220,13 @@ class HuffmanTree(MovingCameraScene):
             self.play(animationTree.animate.add_edges(edge))
 
         self.wait(2)
-
+        
+        # Sort new tree
         newPositions = huffTree.sortTree(newNode)
 
-"""# --------------- Agregar un nuevo nodo H -------------------
-        # Definir el nuevo nodo y arista
-        nuevo_nodo = "H"
-        nueva_arista = ("N", "A")  # Nodo H conectado a E
-
-        # Definir la posición del nuevo nodo en el layout
-
-        # Agregar el nuevo nodo y arista al grafo
-        #arbol.add_vertices(nuevo_nodo)
-        #arbol.add_edges(nueva_arista)
-
-        # Animar la aparición del nuevo nodo y arista
-        self.play(arbol.animate.add_vertices("1", positions = {"1":[-2, 1, 0]}, labels= True))
-        self.play(arbol.animate.add_edges(("1", "D")))
-        self.play(arbol.animate.add_edges(("1", "E")))
-        self.wait(2)
-
-        self.play(
-                arbol.vertices["1"].animate.move_to([2, 1, 0]),
-                arbol.vertices["C"].animate.move_to([-2, 1, 0]),
-                arbol.vertices["D"].animate.move_to([1, 0, 0]),
-                arbol.vertices["F"].animate.move_to([-3, 0, 0]),
-                arbol.vertices["E"].animate.move_to([3, 0, 0]),
-                arbol.vertices["G"].animate.move_to([-1, 0, 0])
-                )
-
-        
-        self.wait(2)"""
-
+        # Animate sorting
+        for node in newPositions:
+             self.play(animationTree.vertices[node].animate.move_to(newPositions[node]))
 
 inputSymbols = ['A', 'B', 'C', 'D', 'E']
 outputSymbols = ['0', '1']
