@@ -45,7 +45,7 @@ class HuffTree():
         
         symbolsNum = len(inputSymbols)
         if symbolsNum % 2 == 0:
-            pos = -1 - 2*(symbolsNum//2)
+            pos = -1 - 2*((symbolsNum-1)//2)
         else:
             pos = - 2*(symbolsNum//2)
 
@@ -88,7 +88,8 @@ class HuffmanTree(MovingCameraScene):
             labels=True      # Mostrar etiquetas en los nodos
         )
         print(nodes)
-        self.camera.frame.scale(1.5),
+        self.camera.frame.scale(1.5)
+        self.camera.frame.move_to(ORIGIN)
 
         # Mostrar el árbol
         self.play(Create(animationTree))
@@ -124,9 +125,9 @@ class HuffmanTree(MovingCameraScene):
         self.wait(2)"""
 
 
-inputSymbols = ['A', 'B', 'C', 'D', 'E']
+inputSymbols = ['A', 'B', 'C', 'D']
 outputSymbols = ['0', '1']
-probabilities = [0.4, 0.2, 0.2, 0.1, 0.1]
+probabilities = [0.4, 0.2, 0.2, 0.1]
 
 scene = HuffmanTree()
 scene.construct()
