@@ -6,8 +6,8 @@ class SubTree():
         self.leader = symbol
         self.probability = probability
         self.positions = {symbol : initialPosition}
-        self.leftMostPosition = initialPosition
-        self.rightMostPosition = initialPosition
+        self.leftMostPosition = initialPosition[0]
+        self.rightMostPosition = initialPosition[0]
 
     def __repr__(self):
         return f'(Leader: {self.leader}, Probability: {self.probability}, Positions: {self.positions})'
@@ -16,16 +16,15 @@ class SubTree():
         self.probability += mergeSubTree.probability
         self.positions = {**self.positions, **mergeSubTree.positions}
 
-        if mergeSubTree.leftMostPosition[0] < self.leftMostPosition[0]:
+        if mergeSubTree.leftMostPosition < self.leftMostPosition:
             self.leftMostPosition = mergeSubTree.leftMostPosition
 
-        if mergeSubTree.rightMostPosition[0] > self.rightMostPosition[0]:
+        if mergeSubTree.rightMostPosition > self.rightMostPosition:
             self.rightMostPosition = mergeSubTree.rightMostPosition
 
-    def move_to(self, newLeaderPosition):
-        movement = newLeaderPosition - positions[self.leader]
-        for node in positions:
-            positions[node] += movement
+    def move(self, movement):
+        for node in self.positions:
+            self.positions[node][0] += movement
 
 class HuffTree():
     def __init__(self, inputSymbols, outputSymbols, probabilities):
@@ -134,10 +133,50 @@ class HuffTree():
         return newEdges, newSubTree.leader
 
         
-    def sortTree(self):
-        self.tree = dict(sorted(self.tree.items(), key=lambda item : item[1].probability))
-        print(self.tree)
+    def sortTree(self, newLeader):
+        newPositions = {}
 
+        # Store old tree
+        oldTree = self.tree
+
+        # Sort tree
+        self.tree = dict(sorted(self.tree.items(), key=lambda item : item[1].probability))
+
+        # Store overall order
+        oldTreeOrder = [leader for leader in oldTree]
+        treeOrder = [leader for leader in self.tree]
+
+        # Get old and new indexes
+        oldIndex = oldTreeOrder.index(newLeader)
+        newIndex = treeOrder.index(newLeader)
+
+        subTreeAtIndex = oldTree[oldTreeOrder[newIndex]]
+
+        newLeaderLeft = oldTree[newLeader].leftMostPosition
+        newLeaderRight = oldTree[newLeader].rightMostPosition
+
+        indexRight = subTreeAtIndex.rightMostPosition
+
+        # Compute movements
+        treeMovement = indexRight - newLeaderRight
+        otherMovement = newLeaderLeft - newLeaderRight - 2
+
+        # Move
+        for leader in self.tree:
+            if leader == newLeader:
+                movement = treeMovement
+            else:
+                movement = otherMovement
+            
+            subTree = self.tree[leader]
+            subTree.move(movement)
+            
+            # Update new positions
+            for node in subTree.positions:
+                newPositions[node] = subTree.positions[node]
+
+        print(self.tree)
+        return newPositions
 
 inputSymbols = []
 outputSymbols = []
@@ -168,6 +207,8 @@ class HuffmanTree(MovingCameraScene):
         self.play(Create(animationTree))
         self.wait(2)
 
+        # Loops until done
+
         # Codificate and update tree
         newEdges, newNode = huffTree.codificateStep()
         tree = huffTree.tree
@@ -179,6 +220,8 @@ class HuffmanTree(MovingCameraScene):
             self.play(animationTree.animate.add_edges(edge))
 
         self.wait(2)
+
+        newPositions = huffTree.sortTree(newNode)
 
 """# --------------- Agregar un nuevo nodo H -------------------
         # Definir el nuevo nodo y arista
@@ -210,9 +253,9 @@ class HuffmanTree(MovingCameraScene):
         self.wait(2)"""
 
 
-inputSymbols = ['A', 'B', 'C', 'D']
+inputSymbols = ['A', 'B', 'C', 'D', 'E']
 outputSymbols = ['0', '1']
-probabilities = [0.4, 0.2, 0.2, 0.1]
+probabilities = [0.4, 0.2, 0.2, 0.1, 0.1]
 
 scene = HuffmanTree()
 scene.construct()
