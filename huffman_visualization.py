@@ -10,13 +10,11 @@ class SubTree():
         self.rightMostPosition = initialPosition
 
     def __repr__(self):
-        return f'(Node: {self.leader}, Probability: {self.probability}, Positions: {self.positions})'
+        return f'(Leader: {self.leader}, Probability: {self.probability}, Positions: {self.positions})'
 
-    def merge(self, mergeSubTree, newLeader, newLeaderPosition):
-        self.probability += mergeSubtree.probability
-        self.leader = newLeader
+    def merge(self, mergeSubTree):
+        self.probability += mergeSubTree.probability
         self.positions = {**self.positions, **mergeSubTree.positions}
-        self.positions[newLeader] = newLeaderPosition
 
         if mergeSubTree.leftMostPosition[0] < self.leftMostPosition[0]:
             self.leftMostPosition = mergeSubTree.leftMostPosition
@@ -31,8 +29,12 @@ class SubTree():
 
 class HuffTree():
     def __init__(self, inputSymbols, outputSymbols, probabilities):
-        self.codification = {}
+        self.outputSymbols = outputSymbols
+        self.codification = {symbol: "" for symbol in inputSymbols}
         self.tree = {}
+        self.nodeCount = 1
+        self.firstStep = True
+        self.leadership = {symbol : {symbol} for symbol in inputSymbols}
 
         # Sort the nodes
         nodes = {}
@@ -56,8 +58,80 @@ class HuffTree():
 
         print(self.tree)
 
-    #def codificate(self):
+    def codificateStep(self):
+        newEdges = []
+        newLeadership = set()
+
+        # Calculates the number of subTrees to group
+        D = len(outputSymbols)
+
+        if self.firstStep:
+            self.firstStep = False
+
+            r = (len(inputSymbols)-1) % (D-1)
+            D = D - r
         
+        # Groups the subtrees
+        count = 0
+        groupSubTrees = {}
+        for leader in self.tree:
+            if count == D: break
+
+            groupSubTrees[leader] = self.tree[leader]
+
+            # Codificate step
+            for node in self.leadership[leader]:
+                newLeadership.add(node)
+                self.codification[node] = self.outputSymbols[count] + self.codification[node]
+
+            # Delete leadership
+            self.leadership.pop(leader)
+
+            count += 1
+
+        # Erase subtrees from tree
+        for leader in groupSubTrees:
+            self.tree.pop(leader)
+
+        print(groupSubTrees)
+
+        # Create new subtree
+        subTrees = [groupSubTrees[leader] for leader in groupSubTrees]
+        subProbabilities = [s.probability for s in subTrees]
+
+        first = subTrees[0]
+        last = subTrees[-1]
+
+        level = first.positions[first.leader][1]
+        firstPosX = first.positions[first.leader][0]
+        lastPosX = last.positions[last.leader][0]
+
+        newNodePos = [(firstPosX+lastPosX)//2, level+1, 0]
+
+        newSubTree = SubTree(str(self.nodeCount), newNodePos, 0)
+        
+        # Merge subtrees
+        for s in subTrees:
+            newSubTree.merge(s)
+            newEdges.append((newSubTree.leader, s.leader))
+
+        print(newSubTree)
+
+        # Update tree
+        self.tree[newSubTree.leader] = newSubTree
+
+        # Update leadership
+        self.leadership[newSubTree.leader] = newLeadership
+
+        # Update nodeCount
+        self.nodeCount += 1
+
+        print(self.tree)
+        print(self.leadership)
+        print(newEdges)
+        print(self.codification)
+
+        return newEdges
 
         
     def sortTree(self):
@@ -94,6 +168,8 @@ class HuffmanTree(MovingCameraScene):
         # Mostrar el árbol
         self.play(Create(animationTree))
         self.wait(2)
+
+        huffTree.codificateStep()
 
 """# --------------- Agregar un nuevo nodo H -------------------
         # Definir el nuevo nodo y arista
