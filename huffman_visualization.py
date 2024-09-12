@@ -223,8 +223,11 @@ class HuffmanTree(MovingCameraScene):
         self.camera.frame.move_to(ORIGIN)
 
         self.play(Create(animationTree))
-        self.wait(2)
+        numbers = self.showProbabilities(tree)       
 
+        self.wait(5)
+        self.removeNumbers(numbers)
+        
        # Loops until done
         while len(tree) > 1:
             # Codificate and update tree
@@ -236,17 +239,38 @@ class HuffmanTree(MovingCameraScene):
             self.play(animationTree.animate.add_vertices(newNode, positions=newPos, labels=True))
             for edge in newEdges:
                 self.play(animationTree.animate.add_edges(edge))
-
-            self.wait(2)
+            
+            numbers = self.showProbabilities(tree)       
+            self.wait(3)
+            self.removeNumbers(numbers)
         
             # Sort new tree
             newPositions = huffTree.sortTree(newNode)
+            tree = huffTree.tree
 
             # Animate sorting
             for node in newPositions:
                 self.play(animationTree.vertices[node].animate.move_to(newPositions[node]))
             
-            self.wait(2)
+            numbers = self.showProbabilities(tree)       
+            self.wait(3)
+            self.removeNumbers(numbers)
+
+    def showProbabilities(self, tree):
+        numbers = {}
+        for leader in tree:
+            leaderPos = copy.deepcopy(tree[leader].positions[leader])
+            leaderPos[1] += 0.5
+            probability = tree[leader].probability
+            numbers[leader] = Text(str(probability)).scale(0.5)
+            numbers[leader].move_to(leaderPos)
+            self.add(numbers[leader])
+        return numbers
+
+    def removeNumbers(self, numbers):
+        for number in numbers:
+            self.play(FadeOut(numbers[number]))
+
 
 inputSymbols = ['A', 'B', 'C', 'D']
 outputSymbols = ['0', '1']
