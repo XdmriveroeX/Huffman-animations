@@ -35,6 +35,7 @@ class HuffTree():
     def __init__(self, inputSymbols, outputSymbols, probabilities):
         self.outputSymbols = outputSymbols
         self.codification = {symbol: "" for symbol in inputSymbols}
+        self.symbolPositions = {}
         self.tree = {}
         self.nodeCount = 1
         self.firstStep = True
@@ -58,6 +59,7 @@ class HuffTree():
         # Place the nodes
         for symbol, prob in nodes:
             self.tree[symbol] = SubTree(symbol, [pos, -5, 0], prob)
+            self.symbolPositions[symbol] = [pos, -5, 0]
             pos += 2
 
         #print(self.tree)
@@ -193,6 +195,10 @@ class HuffTree():
             for node in subTree.positions:
                 newPositions[node] = subTree.positions[node]
 
+        # Update symbols positions
+        for symbol in self.leadership[newLeader]:
+            self.symbolPositions[symbol] = self.tree[newLeader].positions[symbol]
+
         print(self.tree)
         return newPositions
 
@@ -229,7 +235,7 @@ class HuffmanTree(MovingCameraScene):
         self.removeNumbers(numbers)
         
        # Loops until done
-        while len(tree) > 1:
+        while True:
             # Codificate and update tree
             newEdges, newNode = huffTree.codificateStep()
             tree = huffTree.tree
@@ -243,6 +249,8 @@ class HuffmanTree(MovingCameraScene):
             numbers = self.showProbabilities(tree)       
             self.wait(3)
             self.removeNumbers(numbers)
+
+            if(len(tree) == 1): break
         
             # Sort new tree
             newPositions = huffTree.sortTree(newNode)
@@ -256,12 +264,25 @@ class HuffmanTree(MovingCameraScene):
             self.wait(3)
             self.removeNumbers(numbers)
 
+        self.showCodes(huffTree.codification, huffTree.symbolPositions)
+        self.wait(10)
+
+    def showCodes(self, codification, symbolPositions):
+        codes = {}
+        for symbol in symbolPositions:
+            symbolPos = copy.deepcopy(symbolPositions[symbol])
+            symbolPos[1] -= 0.5
+            codes[symbol] = Text(codification[symbol]).scale(0.5)
+            codes[symbol].move_to(symbolPos)
+            self.add(codes[symbol])
+        return codes
+
     def showProbabilities(self, tree):
         numbers = {}
         for leader in tree:
             leaderPos = copy.deepcopy(tree[leader].positions[leader])
             leaderPos[1] += 0.5
-            probability = tree[leader].probability
+            probability = round(tree[leader].probability, 4)
             numbers[leader] = Text(str(probability)).scale(0.5)
             numbers[leader].move_to(leaderPos)
             self.add(numbers[leader])
@@ -272,9 +293,9 @@ class HuffmanTree(MovingCameraScene):
             self.play(FadeOut(numbers[number]))
 
 
-inputSymbols = ['A', 'B', 'C', 'D']
+inputSymbols = ['A', 'B', 'C', 'D', 'E', 'F']
 outputSymbols = ['0', '1']
-probabilities = [0.25, 0.25, 0.25, 0.25]
+probabilities = [0.05, 0.10, 0.15, 0.27, 0.20, 0.23]
 
 scene = HuffmanTree()
 scene.construct()
