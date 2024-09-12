@@ -1,5 +1,7 @@
 import numpy as np
+import PySimpleGUI as sg
 from manim import *
+import os
 
 class ShannonFanoTree(Scene):
     def __init__(self, symbols, probabilities):
@@ -13,7 +15,6 @@ class ShannonFanoTree(Scene):
 
     def construct(self):
         config.frame_rate = 60
-        config.quality = "high_quality"
         self.tree_group = VGroup()
 
         root_text = self._format_node_text(self.symbols, self.probabilities)
@@ -153,27 +154,131 @@ class ShannonFanoTree(Scene):
     def _format_node_text(self, symbols, probabilities):
         return f"{{{','.join(symbols)}}}\n{sum(probabilities):.2f}"
 
-# Function to gather input from CLI
-def get_user_input():
-    num_symbols = int(input("Enter the number of symbols: "))
-    symbols = []
-    probabilities = []
 
-    for i in range(num_symbols):
-        symbol = input(f"Enter symbol {i + 1}: ")
-        prob = float(input(f"Enter probability for symbol {symbol}: "))
-        symbols.append(symbol)
-        probabilities.append(prob)
+import sys
+import numpy as np
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QFileDialog, QMessageBox
+from PyQt5.QtCore import Qt
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtCore import QUrl
+from manim import *
 
-    return symbols, probabilities
-5
+class InputWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+
+        # Input for number of symbols
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel("Number of symbols:"))
+        self.num_symbols_input = QLineEdit()
+        hbox.addWidget(self.num_symbols_input)
+        layout.addLayout(hbox)
+
+        # Button to generate input fields
+        generate_btn = QPushButton("Generate Input Fields")
+        generate_btn.clicked.connect(self.generateInputFields)
+        layout.addWidget(generate_btn)
+
+        # Table for symbol inputs
+        self.table = QTableWidget(0, 2)
+        self.table.setHorizontalHeaderLabels(["Symbol", "Probability"])
+        layout.addWidget(self.table)
+
+        # Button to generate tree
+        generate_tree_btn = QPushButton("Generate Shannon-Fano Tree")
+        generate_tree_btn.clicked.connect(self.generateTree)
+        layout.addWidget(generate_tree_btn)
+
+        self.setLayout(layout)
+        self.setWindowTitle('Shannon-Fano Tree Generator')
+        self.show()
+
+    def generateInputFields(self):
+        try:
+            num_symbols = int(self.num_symbols_input.text())
+            self.table.setRowCount(num_symbols)
+            for i in range(num_symbols):
+                self.table.setItem(i, 0, QTableWidgetItem(""))
+                self.table.setItem(i, 1, QTableWidgetItem(""))
+        except ValueError:
+            QMessageBox.warning(self, "Invalid Input", "Please enter a valid number of symbols.")
+
+    def generateTree(self):
+        symbols = []
+        probabilities = []
+        for row in range(self.table.rowCount()):
+            symbol = self.table.item(row, 0).text()
+            prob = self.table.item(row, 1).text()
+            if symbol and prob:
+                symbols.append(symbol)
+                try:
+                    probabilities.append(float(prob))
+                except ValueError:
+                    QMessageBox.warning(self, "Invalid Input", f"Invalid probability for symbol {symbol}")
+                    return
+
+        if not np.isclose(sum(probabilities), 1):
+            QMessageBox.warning(self, "Invalid Input", "Probabilities must sum up to 1.")
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Video", "", "MP4 Files (*.mp4)")
+        if file_path:
+            scene = ShannonFanoTree(symbols, probabilities)
+            scene.render(file_path)
+            self.showVideo(file_path)
+
+    def showVideo(self, file_path):
+        self.video_window = VideoPlayerWindow(file_path)
+        self.video_window.show()
+
+class VideoPlayerWindow(QWidget):
+    def __init__(self, video_path):
+        super().__init__()
+        self.initUI(video_path)
+
+    def initUI(self, video_path):
+        layout = QVBoxLayout()
+
+        self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        videoWidget = QVideoWidget()
+
+        layout.addWidget(videoWidget)
+
+        self.playButton = QPushButton()
+        self.playButton.setEnabled(False)
+        self.playButton.setText("Play")
+        self.playButton.clicked.connect(self.play)
+
+        layout.addWidget(self.playButton)
+
+        self.setLayout(layout)
+
+        self.mediaPlayer.setVideoOutput(videoWidget)
+        self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
+        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(video_path)))
+        self.playButton.setEnabled(True)
+
+        self.setWindowTitle("Shannon-Fano Tree Video")
+        self.resize(640, 480)
+
+    def play(self):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            self.mediaPlayer.pause()
+        else:
+            self.mediaPlayer.play()
+
+    def mediaStateChanged(self, state):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            self.playButton.setText("Pause")
+        else:
+            self.playButton.setText("Play")
+
 if __name__ == '__main__':
-    symbols, probabilities = get_user_input()
-
-    # Check that the probabilities sum up to 1
-    if not np.isclose(sum(probabilities), 1):
-        print("Error: Probabilities must sum up to 1.")
-    else:
-        # Create the scene and render it
-        scene = ShannonFanoTree(symbols, probabilities)
-        scene.render()
+    app = QApplication(sys.argv)
+    ex = InputWindow()
+    sys.exit(app.exec_())

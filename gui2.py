@@ -1,4 +1,5 @@
 import numpy as np
+import PySimpleGUI as sg
 from manim import *
 
 class ShannonFanoTree(Scene):
@@ -13,7 +14,6 @@ class ShannonFanoTree(Scene):
 
     def construct(self):
         config.frame_rate = 60
-        config.quality = "high_quality"
         self.tree_group = VGroup()
 
         root_text = self._format_node_text(self.symbols, self.probabilities)
@@ -153,27 +153,78 @@ class ShannonFanoTree(Scene):
     def _format_node_text(self, symbols, probabilities):
         return f"{{{','.join(symbols)}}}\n{sum(probabilities):.2f}"
 
-# Function to gather input from CLI
-def get_user_input():
-    num_symbols = int(input("Enter the number of symbols: "))
-    symbols = []
-    probabilities = []
+# GUI Layout
+def create_gui():
+    layout = [
+        [sg.Text('Enter Symbols and Probabilities')],
+        [sg.Text('Number of Symbols:'), sg.InputText(key='num_symbols')],
+        [sg.Button('Next', key='next')],
+        [sg.Text('', size=(50, 1), key='feedback')],
+        [sg.Button('Submit', key='submit', visible=False)],
+        [sg.Image(key='video')],
+    ]
+    window = sg.Window('Shannon-Fano Coding', layout, finalize=True)
+    return window
 
-    for i in range(num_symbols):
-        symbol = input(f"Enter symbol {i + 1}: ")
-        prob = float(input(f"Enter probability for symbol {symbol}: "))
-        symbols.append(symbol)
-        probabilities.append(prob)
+# Function to get user input via GUI
+def get_input_from_gui():
+    window = create_gui()
+    num_symbols = 0
+    input_rows = []  # To store dynamically added input elements
 
-    return symbols, probabilities
-5
+    while True:
+        event, values = window.read()
+
+        if event == sg.WIN_CLOSED:
+            break
+
+        # Handling "Next" button to add symbol/probability inputs dynamically
+        if event == 'next':
+            try:
+                num_symbols = int(values['num_symbols'])
+                if num_symbols <= 0:
+                    raise ValueError
+                # Dynamically add rows for symbol and probability inputs
+                for i in range(num_symbols):
+                    input_rows.append([
+                        sg.Text(f"Symbol {i + 1}:", size=(10, 1)), sg.InputText(key=f'symbol_{i}'),
+                        sg.Text(f"Probability {i + 1}:", size=(15, 1)), sg.InputText(key=f'prob_{i}')
+                    ])
+                window.extend_layout(window, input_rows)  # Add new input fields to window
+                window['submit'].update(visible=True)  # Show the submit button after adding inputs
+                window['next'].update(visible=False)  # Hide the "Next" button after clicking
+            except ValueError:
+                window['feedback'].update('Please enter a valid number of symbols.')
+
+        # Handling "Submit" button click to process input and render animation
+        if event == 'submit':
+            symbols = []
+            probabilities = []
+            try:
+                # Collect symbols and probabilities from user inputs
+                for i in range(num_symbols):
+                    symbol = values[f'symbol_{i}']
+                    prob = float(values[f'prob_{i}'])
+                    symbols.append(symbol)
+                    probabilities.append(prob)
+
+                # Validate that probabilities sum up to 1
+                if np.isclose(sum(probabilities), 1):
+                    window['feedback'].update('Rendering the Shannon-Fano Tree...')
+                    # Here you would render the video using the ShannonFanoTree class
+                    scene = ShannonFanoTree(symbols, probabilities)
+                    scene.render()  # This will generate the video
+
+                    window['feedback'].update('Rendering complete! The video is now ready.')
+                    # You would load the video file into the GUI here
+                    # Example: window['video'].update(filename='path_to_video.png')
+                else:
+                    window['feedback'].update('Error: The probabilities must sum to 1.')
+            except ValueError:
+                window['feedback'].update('Please enter valid probabilities.')
+
+    window.close()
+
+# Start the GUI
 if __name__ == '__main__':
-    symbols, probabilities = get_user_input()
-
-    # Check that the probabilities sum up to 1
-    if not np.isclose(sum(probabilities), 1):
-        print("Error: Probabilities must sum up to 1.")
-    else:
-        # Create the scene and render it
-        scene = ShannonFanoTree(symbols, probabilities)
-        scene.render()
+    get_input_from_gui()
