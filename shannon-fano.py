@@ -10,6 +10,7 @@ class ShannonFanoTree(Scene):
         self.current_level = 0
         self.waiting_time = 0.3
         self.codes = {}
+        self.edges_map = {}  # To store the edges and labels for highlighting later
 
     def construct(self):
         config.frame_rate = 60  # Default is 60, reducing it slows everything down
@@ -89,6 +90,9 @@ class ShannonFanoTree(Scene):
         self.tree_group.add(left_label, right_label)
         self.play(Write(left_label), Write(right_label))
         self.wait(self.waiting_time)  # Add a short pause after adding labels
+        
+        self.edges_map[current_code + "0"] = (left_edge, left_label)
+        self.edges_map[current_code + "1"] = (right_edge, right_label)
 
         if len(left_symbols) > 1:
             self.build_tree(left_symbols, probabilities[:split_point], left_node, depth + 1, current_code + "0")
@@ -130,72 +134,69 @@ class ShannonFanoTree(Scene):
         self.wait(self.waiting_time)  # Add a pause after zooming out
         
     def show_final_codes(self):
-        print("Entering show_final_codes method")
-        print(f"Total objects in tree_group: {len(self.tree_group)}")
-        
-        # Find all leaf nodes and non-leaf objects
-        leaf_nodes = []
-        objects_to_remove = []
-        for node in self.tree_group:
-            if isinstance(node, VGroup) and len(node) == 2:
-                rectangle, text_group = node
-                if isinstance(rectangle, Rectangle) and isinstance(text_group, VGroup):
-                    symbol_text = text_group[0].text
-                    if symbol_text.startswith('{') and symbol_text.endswith('}') and len(symbol_text) == 3:
-                        leaf_nodes.append(node)
-                        print(f"Found leaf node: {symbol_text}")
-                    else:
-                        objects_to_remove.append(node)
-            else:
-                objects_to_remove.append(node)
-        
-        print(f"Number of leaf nodes found: {len(leaf_nodes)}")
-        print(f"Codes generated: {self.codes}")
-        
-        if not leaf_nodes:
-            print("No leaf nodes found. Skipping final codes animation.")
-            return
+        # Highlight the path and color the codes
+        for symbol, code in self.codes.items():
+            self.highlight_path(symbol, code)
+            self.show_code(symbol, code)
 
-        # Remove non-leaf nodes and edges
-        self.play(*[FadeOut(obj) for obj in objects_to_remove], run_time=1.5)
+    def highlight_path(self, symbol, code):
+        original_colors = []  # To store the original colors of the edges and labels
+
+        # Highlight the edges and labels that correspond to the path for the given code
+        for i, bit in enumerate(code):
+            edge, label = self.edges_map[code[:i+1]]
+
+            # Store the original colors
+            original_colors.append((edge.get_color(), label.get_color()))
+
+            # Change the color of the edges and labels to green
+            self.play(edge.animate.set_color(GREEN), label.animate.set_color(GREEN))
+
+        # Show the code for the symbol
+        self.show_code(symbol, code)
+
+        # After displaying the code, revert the edges and labels to their original colors
+        for i, (edge, label) in enumerate([self.edges_map[code[:i+1]] for i in range(len(code))]):
+            original_edge_color, original_label_color = original_colors[i]
+
+            # Restore the edge color
+            self.play(edge.animate.set_color(original_edge_color), run_time=0.3)
+
+            # Instead of just changing the label color, rewrite the label to ensure it's restored properly
+            label_text = label.text  # Get the current text of the label
+            new_label = Text(label_text, font_size=24).move_to(label.get_center())  # Create a new label at the same position
+            self.play(ReplacementTransform(label, new_label), run_time=0.3)
+            self.edges_map[code[:i+1]] = (edge, new_label)  # Update the edges_map with the new label
+
+
+
+
+    def show_code(self, symbol, code):
+        # Create the code text
+        code_text = Text(f"{symbol}: {code}", font_size=24, color=WHITE)
         
-        # Move leaf nodes to the center, arranged in two rows
-        num_leaves = len(leaf_nodes)
-        num_per_row = (num_leaves + 1) // 2
-        new_positions = []
-        for i in range(num_leaves):
-            row = i // num_per_row
-            col = i % num_per_row
-            x = (col - (num_per_row - 1) / 2) * 1.5
-            y = 1 - row * 2
-            new_positions.append(np.array([x, y, 0]))
+        # Find the leaf node for the given symbol
+        leaf_node = self.find_leaf_node(symbol)
         
-        animations = [node.animate.move_to(pos) for node, pos in zip(leaf_nodes, new_positions)]
-        self.play(*animations, run_time=2)
+        if leaf_node:
+            # Place the code text below the leaf node
+            self.play(Write(code_text.next_to(leaf_node, DOWN, buff=0.2)))
         self.wait(1)
-        
-        # Show codes
-        code_texts = []
-        for node in leaf_nodes:
-            symbol = node[1][0].text[1]  # Get the symbol from the text object
-            if symbol in self.codes:
-                code = self.codes[symbol]
-                code_text = Text(f"{symbol}: {code}", font_size=24).next_to(node, DOWN)
-                code_texts.append(code_text)
-            else:
-                print(f"No code found for symbol: {symbol}")
-        
-        if code_texts:
-            self.play(*[Write(text) for text in code_texts], run_time=2)
-            self.wait(2)
-        else:
-            print("No codes to display.")
-        
-        print("Exiting show_final_codes method")
+
+    def find_leaf_node(self, symbol):
+        # Search for the leaf node containing only the given symbol
+        for node in self.tree_group:
+            if isinstance(node, VGroup) and len(node) > 1:
+                text_group = node[1]
+                if len(text_group) > 0 and isinstance(text_group[0], Text):
+                    if text_group[0].text == f"{{{symbol}}}":
+                        return node
+        return None
+
     
 # Hardcoded example
-symbols = ['A', 'B', 'C', 'D', 'E','F','G','H']
-probabilities = [0.10, 0.15, 0.05, 0.10, 0.20, 0.15, 0.05, 0.2]
+symbols = ['A', 'B', 'C', 'D', 'E','F','G']
+probabilities = [0.10, 0.15, 0.05, 0.10, 0.20, 0.15, 0.25]
 
 # Create the scene
 scene = ShannonFanoTree(symbols, probabilities)
