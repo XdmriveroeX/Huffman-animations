@@ -67,7 +67,7 @@ class ShannonFanoTree(Scene):
         right_text = self._format_node_text(right_symbols, right_probabilities)
 
         vertical_spacing = 1.5
-        horizontal_spacing = 3 / (2 ** depth)
+        horizontal_spacing = 3 / (2 ** depth * 0.65)
         left_pos = (parent_node.get_center() +
                     DOWN * vertical_spacing +
                     LEFT * horizontal_spacing)
