@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import os
 import platform
+import subprocess
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTableWidget, QTableWidgetItem, QFileDialog, QMessageBox, QComboBox
@@ -10,6 +11,7 @@ from PySide6.QtCore import Qt
 from manim import config
 from huffman_visualization import HuffmanTree  # Assuming you modify HuffmanTree accordingly
 from Shannon_pygui_final import ShannonFanoTree
+
 
 class InputWindow(QWidget):
     """GUI window for user input to select algorithm and generate the corresponding tree."""
@@ -43,10 +45,17 @@ class InputWindow(QWidget):
         generate_btn.clicked.connect(self.generate_input_fields)
         layout.addWidget(generate_btn)
 
-        # Table for symbol inputs
+        # Table for symbol inputs (inputSymbols and probabilities)
         self.table = QTableWidget(0, 2)
         self.table.setHorizontalHeaderLabels(["Symbol", "Probability"])
         layout.addWidget(self.table)
+
+        # Input for output symbols (for Huffman)
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel("Output Symbols (comma-separated):"))
+        self.output_symbols_input = QLineEdit()
+        hbox.addWidget(self.output_symbols_input)
+        layout.addLayout(hbox)
 
         # Button to generate tree
         generate_tree_btn = QPushButton("Generate Tree")
@@ -63,8 +72,8 @@ class InputWindow(QWidget):
             num_symbols = int(self.num_symbols_input.text())
             self.table.setRowCount(num_symbols)
             for i in range(num_symbols):
-                self.table.setItem(i, 0, QTableWidgetItem(""))
-                self.table.setItem(i, 1, QTableWidgetItem(""))
+                self.table.setItem(i, 0, QTableWidgetItem(""))  # For input symbols
+                self.table.setItem(i, 1, QTableWidgetItem(""))  # For probabilities
         except ValueError:
             QMessageBox.warning(self, "Invalid Input", "Please enter a valid number of symbols.")
 
@@ -72,6 +81,9 @@ class InputWindow(QWidget):
         """Generates the selected algorithm's tree and renders the animation."""
         symbols = []
         probabilities = []
+        output_symbols = self.output_symbols_input.text().split(',')
+
+        # Gather inputSymbols and probabilities from the table
         for row in range(self.table.rowCount()):
             symbol_item = self.table.item(row, 0)
             prob_item = self.table.item(row, 1)
@@ -98,6 +110,7 @@ class InputWindow(QWidget):
                 )
                 return
 
+        # Ensure probabilities sum to 1.0
         if not np.isclose(sum(probabilities), 1.0):
             QMessageBox.warning(self, "Invalid Input", "Probabilities must sum up to 1.")
             return
@@ -109,7 +122,11 @@ class InputWindow(QWidget):
             scene = ShannonFanoTree(symbols, probabilities)
             output_file_name = "ShannonFanoTree.mp4"
         else:
-            scene = HuffmanTree(symbols, probabilities)
+            # Use the outputSymbols provided by the user for Huffman encoding
+            if not output_symbols or len(output_symbols) < 2:
+                QMessageBox.warning(self, "Invalid Input", "Please provide at least two output symbols.")
+                return
+            scene = HuffmanTree(symbols, output_symbols, probabilities)  # Passing 3 inputs here
             output_file_name = "HuffmanTree.mp4"
 
         # Correct file path to save the video

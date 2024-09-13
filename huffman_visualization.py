@@ -1,5 +1,4 @@
 from manim import *
-
 import numpy as np
 import copy
 
@@ -33,6 +32,7 @@ class SubTree():
 
 class HuffTree():
     def __init__(self, inputSymbols, outputSymbols, probabilities):
+        self.inputSymbols = inputSymbols  # <-- Store inputSymbols here
         self.outputSymbols = outputSymbols
         self.codification = {symbol: "" for symbol in inputSymbols}
         self.symbolPositions = {}
@@ -48,19 +48,20 @@ class HuffTree():
             prob = probabilities[i]
             nodes[symbol] = prob
 
-        nodes  = sorted(nodes.items(), key=lambda item : item[1])
-        
+        nodes = sorted(nodes.items(), key=lambda item: item[1])
+
         symbolsNum = len(inputSymbols)
         if symbolsNum % 2 == 0:
-            pos = -1 - 2*((symbolsNum-1)//2)
+            pos = -1 - 2 * ((symbolsNum - 1) // 2)
         else:
-            pos = - 2*(symbolsNum//2)
+            pos = -2 * (symbolsNum // 2)
 
         # Place the nodes
         for symbol, prob in nodes:
             self.tree[symbol] = SubTree(symbol, [pos, -5, 0], prob)
             self.symbolPositions[symbol] = [pos, -5, 0]
             pos += 2
+
 
         #print(self.tree)
 
@@ -69,14 +70,15 @@ class HuffTree():
         newLeadership = set()
 
         # Calculates the number of subTrees to group
-        D = len(outputSymbols)
+        D = len(self.outputSymbols)
 
         if self.firstStep:
             self.firstStep = False
 
-            r = (len(inputSymbols)-1) % (D-1)
+            # Use self.inputSymbols instead of just inputSymbols
+            r = (len(self.inputSymbols) - 1) % (D - 1)
             D = D - r
-        
+
         # Groups the subtrees
         count = 0
         groupSubTrees = {}
@@ -99,8 +101,6 @@ class HuffTree():
         for leader in groupSubTrees:
             self.tree.pop(leader)
 
-        #print(groupSubTrees)
-
         # Create new subtree
         subTrees = [groupSubTrees[leader] for leader in groupSubTrees]
 
@@ -111,16 +111,14 @@ class HuffTree():
         firstPosX = first.positions[first.leader][0]
         lastPosX = last.positions[last.leader][0]
 
-        newNodePos = [(firstPosX+lastPosX)//2, level+2, 0]
+        newNodePos = [(firstPosX + lastPosX) // 2, level + 2, 0]
 
         newSubTree = SubTree(str(self.nodeCount), newNodePos, 0)
-        
+
         # Merge subtrees
         for s in subTrees:
             newSubTree.merge(s)
             newEdges.append((newSubTree.leader, s.leader))
-
-        #print(newSubTree)
 
         # Update tree
         newElement = {newSubTree.leader: newSubTree}
@@ -131,15 +129,9 @@ class HuffTree():
 
         # Update nodeCount
         self.nodeCount += 1
-        
-        """
-        print(self.tree)
-        print(self.leadership)
-        print(newEdges)
-        print(self.codification)
-        """
 
         return newEdges, newSubTree.leader
+
 
     def calculateLevel(self, subTrees):
         level = - 100
@@ -202,20 +194,27 @@ class HuffTree():
         print(self.tree)
         return newPositions
 
-inputSymbols = []
-outputSymbols = []
-probabilities = []
+#inputSymbols = []
+#outputSymbols = []
+#probabilities = []
 
 class HuffmanTree(MovingCameraScene):
+    def __init__(self, inputSymbols, outputSymbols, probabilities, **kwargs):
+        # Pass the keyword arguments to the base class MovingCameraScene
+        super().__init__(**kwargs)
+        # Store inputSymbols, outputSymbols, and probabilities in the instance
+        self.inputSymbols = inputSymbols
+        self.outputSymbols = outputSymbols
+        self.probabilities = probabilities
+
     def construct(self):
-        # Create HuffTree
-        global inputSymbols, outputSymbols, probabilities
-        huffTree = HuffTree(inputSymbols, outputSymbols, probabilities)
+        # Use the stored inputSymbols, outputSymbols, and probabilities in your HuffmanTree logic
+        huffTree = HuffTree(self.inputSymbols, self.outputSymbols, self.probabilities)
         tree = huffTree.tree
-        #print(tree)
-        # Create animation tree
+        
+        # Rest of your construct logic to build and animate the tree...
         nodes = [sub for sub in tree]
-        layout = {sub : tree[sub].positions[sub] for sub in tree}
+        layout = {sub: tree[sub].positions[sub] for sub in tree}
         edges = []       
 
         animationTree = Graph(
@@ -224,7 +223,7 @@ class HuffmanTree(MovingCameraScene):
             layout=layout,
             labels=True      # Mostrar etiquetas en los nodos
         )
-        #print(nodes)
+        
         self.camera.frame.scale(1.5)
         self.camera.frame.move_to(ORIGIN)
 
@@ -233,8 +232,7 @@ class HuffmanTree(MovingCameraScene):
 
         self.wait(5)
         self.removeNumbers(numbers)
-        
-       # Loops until done
+
         while True:
             # Codificate and update tree
             newEdges, newNode = huffTree.codificateStep()
@@ -293,9 +291,8 @@ class HuffmanTree(MovingCameraScene):
             self.play(FadeOut(numbers[number]))
 
 
-inputSymbols = ['A', 'B', 'C', 'D', 'E', 'F']
-outputSymbols = ['0', '1']
-probabilities = [0.05, 0.10, 0.15, 0.27, 0.20, 0.23]
+#inputSymbols = ['A', 'B', 'C', 'D', 'E', 'F']
+#outputSymbols = ['0', '1']
+#probabilities = [0.05, 0.10, 0.15, 0.27, 0.20, 0.23]
 
-scene = HuffmanTree()
-scene.construct()
+

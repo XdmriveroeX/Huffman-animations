@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import os
 import platform
+import subprocess
 
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
